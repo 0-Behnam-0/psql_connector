@@ -1,4 +1,4 @@
-from tkinter import Tk, messagebox, StringVar, Listbox, IntVar
+from tkinter import Tk, messagebox, StringVar
 import psycopg2
 import tkinter.ttk as ttk
 
@@ -36,10 +36,41 @@ def tab_info():
             'user_id': main_user_id_entry.get(),
             'tree_id': main_tree_id_entry.get(),
         }
-    # if index == 2:
-    # if index == 3:
-    # if index == 4:
-    # if index == 5:
+    if index == 2:
+        selected_id = media_link_id_entry.get()
+        table_name = 'media_link'
+        table_data = {
+            'start_at': media_link_start_time_entry.get(),
+            'end_at': media_link_end_time_entry.get(),
+            'description': media_link_description_entry.get(),
+            'media_id': media_link_main_id_entry.get(),
+            'repository_id': media_link_repository_id_entry.get(),
+        }
+    if index == 3:
+        selected_id = position_id_entry.get()
+        table_name = 'position'
+        table_data = {
+            'title': position_title_entry.get(),
+            'description': position_description_entry.get(),
+        }
+    if index == 4:
+        selected_id = position_link_id_entry.get()
+        table_name = 'position_link'
+        table_data = {
+            'appointment_date': position_link_apointment_date_entry.get(),
+            'dismissal_date': position_link_dismissal_date_entry.get(),
+            'user_id': position_link_user_id_entry.get(),
+            'position_id': position_link_position_id_entry.get(),
+        }
+    if index == 5:
+        selected_id = repository_id_entry.get()
+        table_name = 'repository'
+        table_data = {
+            'name': repository_name_entry.get(),
+            'type': repository_type_entry.get(),
+            'url': repository_url_entry.get(),
+            'description': repository_description_entry.get(),
+        }
     if index == 6:
         selected_id = tag_id_entry.get()
         table_name = 'tag'
@@ -48,28 +79,41 @@ def tab_info():
             'publish_date': tag_publish_date_entry.get(),
             'description': tag_description_entry.get(),
         }
-    # if index == 7:
-    # if index == 8:
-    # if index == 9:
-    print(index)
-
-
-# def create_table():
-#     cur = conn.cursor()
-#     cur.execute("""
-#         CREATE TABLE IF NOT EXISTS my_table (
-#             id SERIAL PRIMARY KEY,
-#             name VARCHAR(50),
-#             age INTEGER);
-#         """)
-#     conn.commit()
-#     cur.close()
+    if index == 7:
+        selected_id = tag_link_id_entry.get()
+        table_name = 'tag_link'
+        table_data = {
+            'main_id': tag_link_main_id_entry.get(),
+            'tag_id': tag_link_tag_id_entry.get(),
+        }
+    if index == 8:
+        selected_id = tree_id_entry.get()
+        table_name = 'tree'
+        table_data = {
+            'title': tag_title_entry.get(),
+            'code': tree_code_entry.get(),
+            'root_code': tree_code_entry.get(),
+        }
+    if index == 9:
+        selected_id = user_id_entry.get()
+        table_name = 'user'
+        table_data = {
+            'first_name': user_first_name_entry.get(),
+            'last_name': user_last_name_entry.get(),
+            'national_code': user_national_code_entry.get(),
+            'phone_number': user_phone_entry.get(),
+            'username': user_username_entry.get(),
+            'password': user_password_entry.get(),
+            'evidence': user_evidence_entry.get(),
+            'email': user_email_entry.get(),
+        }
 
 
 def insert_data():
     tab_info()
 
     values = str(list(table_data.values()))
+    values = values.replace('\'\'', 'null')
     values = selected_id + ", " + values[1:-1]
 
     keys = table_name + "_id"
@@ -81,8 +125,6 @@ def insert_data():
     conn.commit()
     cur.close()
     messagebox.showinfo("Success", "Data inserted successfully")
-    # name_entry.delete(0, 'end')
-    # age_entry.delete(0, 'end')
 
 
 def select_data():
@@ -93,35 +135,33 @@ def select_data():
     rows = cur.fetchall()
     cur.close()
     messagebox.showinfo("Data", str(rows))
-    # print(t)
 
 
 def update_data():
-    query = ""
-    for key, value in table_data:
-        query = str(key+" = "+value) + query
+    tab_info()
+
+    query=''
+    for key, value in table_data.items():
+        query = query +", "+ key +" = '"+ value +"'"
+    query = query[2:]
+    query = query.replace('\'\'', 'null')
     print(query)
-    # id = int(id_entry.get())
-    # name = name_entry.get()
-    # age = age_entry.get()
+    
     cur = conn.cursor()
-    cur.execute(f"UPDATE {table_name} SET {query} WHERE id = {id_entry.get()}")
+    cur.execute(f"UPDATE {table_name} SET {query} WHERE {table_name}_id = {selected_id}")
     conn.commit()
     cur.close()
     messagebox.showinfo("Success", "Data updated successfully")
-    id_entry.delete(0, 'end')
-    name_entry.delete(0, 'end')
-    age_entry.delete(0, 'end')
 
 
 def delete_data():
-    id = int(id_entry.get())
+    tab_info()
+
     cur = conn.cursor()
-    cur.execute(f"DELETE FROM {table_name} WHERE {table_name}_id = {str(id)}")
+    cur.execute(f"DELETE FROM {table_name} WHERE {table_name}_id = {selected_id}")
     conn.commit()
     cur.close()
     messagebox.showinfo("Success", "Data deleted successfully")
-    id_entry.delete(0, 'end')
 
 
 table_list = {
@@ -154,9 +194,9 @@ LAST_ROW = 0
 
 
 nb = ttk.Notebook(window, padding=5)
-# Loop through the dictionary and create a new tab for each key-value pair
+
 for key, value in table_list.items():
-    # Create a new tab
+
     tab = ttk.Frame(nb, padding=5)
     
     if key=='Document Link':
@@ -418,11 +458,9 @@ for key, value in table_list.items():
         user_email_label.grid(row=8, column=0, sticky='w', pady=2)
         user_email_entry = ttk.Entry(tab)
         user_email_entry.grid(row=8, column=1, pady=2)
-
-    # Add the tab to the notebook
+        
     nb.add(tab, text=key)
-
-# Pack the notebook widget
+    
 nb.grid(row=LAST_ROW, column=0, columnspan=4, sticky='nsew')
 LAST_ROW =+ 1
 
@@ -449,7 +487,5 @@ LAST_ROW += 1
 window.grid_columnconfigure((0, 1, 2, 3), weight=1, uniform=1)
 window.grid_rowconfigure(0, weight=1)
 window.configure(bg='#dcdad3')
-
-# TODO create_table()
 
 window.mainloop()
